@@ -96,25 +96,25 @@ Future<String> login(String username, String password) async {
     final response = await ioClient.post(
       url,
       body: body,
-    );
+    ).timeout(const Duration(seconds: 4));
     final responsedata = parseLoginResponse(response.body);
     if (response.statusCode == 200) {
       log(responsedata);
-      showToast(responsedata);
+    await  showToast(responsedata);
     } else {
       log('Login failed: ${parseLoginResponse(response.body)}');
-      showToast(response.body);
+   await   showToast(response.body);
     }
     return responsedata;
   } catch (e) {
     log('Error: $e');
-    showToast('unknown error occured');
+  await  showToast('unknown error occured');
     return 'unknown error occured';
   }
 }
-void showToast(String message) {
+Future<void> showToast(String message) async {
   log(message);
-  BackgroundService.showToast(message);
+ await BackgroundService.showToast(message);
 }
 
 String parseLoginResponse(String response) {

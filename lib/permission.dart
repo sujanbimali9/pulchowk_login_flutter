@@ -15,15 +15,4 @@ Future<void> handlePermisson() async {
     exit(0);
   } else {
   }
-  // const location = Permission.location;
-  // final locationStatus = await location.status;
-  // if (locationStatus.isGranted) {
-  //   return;
-  // } else if (locationStatus.isDenied) {
-  //   await location.request();
-  // } else if (locationStatus.isPermanentlyDenied) {
-  //   exit(0);
-  // } else {
-  //   await location.request();
-  // }
 }

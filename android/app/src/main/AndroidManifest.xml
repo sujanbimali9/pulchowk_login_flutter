@@ -36,7 +36,7 @@
             android:value="2" />
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="WhatForegroundServiceTypeDoYouWant"
+            android:foregroundServiceType="location"
             />
     </application>
 </manifest>

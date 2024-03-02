@@ -8,11 +8,11 @@ Future<void> handlePermisson() async {
   final notiStatus = await notification.status;
   if (notiStatus.isGranted) {
     return;
-  } else if (notiStatus.isLimited||notiStatus.isRestricted||notiStatus.isProvisional)
-  {
+  } else if (notiStatus.isLimited ||
+      notiStatus.isRestricted ||
+      notiStatus.isProvisional) {
     await notification.request();
   } else if (notiStatus.isPermanentlyDenied) {
     exit(0);
-  } else {
-  }
+  } else {}
 }

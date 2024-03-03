@@ -12,7 +12,10 @@ import 'login.dart';
 Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();
   IosConfiguration iosConfiguration = IosConfiguration(
-      onForeground: onStart, onBackground: onIosBackground, autoStart: true);
+    onForeground: onStart,
+    onBackground: onIosBackground,
+    autoStart: true,
+  );
   AndroidConfiguration androidConfiguration = AndroidConfiguration(
     onStart: onStart,
     isForegroundMode: true,
@@ -32,16 +35,14 @@ Future<void> onStart(ServiceInstance service) async {
     service.on('setAsForeground').listen((event) async {
       await service.setAsForegroundService();
       if (await service.isForegroundService()) {
-        service.setForegroundNotificationInfo(
+        await service.setForegroundNotificationInfo(
             title: 'Wifi State Service',
             content: 'Listening for wifi state change');
       }
     });
-    service.on('setAsBackground').listen((event) async {
-      await service.setAsBackgroundService();
-    });
-    service.on('stopService').listen((event) {
-      service.stopSelf();
+    service.on('stopService').listen((event) async {
+      await service.stopSelf();
+      await service.setAsForegroundService();
     });
   }
   Connectivity()
@@ -52,11 +53,9 @@ Future<void> onStart(ServiceInstance service) async {
       final ip = await network.getWifiIP();
       if (ip != null) {
         final data = Storage.getPData();
-        log(ip);
         if (Storage.isFilterEnabled()) {
           log('filter is enabled');
           if (checkIp(ip)) {
-            log('ip available');
             await login(data['username']!, data['password']!);
           }
         } else {
@@ -82,6 +81,6 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   return true;
 }
 
-bool checkIp(ip) {
-  return Storage.getIp().any((e) => e.contains(ip));
+bool checkIp(String ip) {
+  return Storage.getIp().any((e) => ip.contains(e));
 }

@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -35,7 +37,6 @@ class Storage {
   }
 
   static List<String> getIp() {
-    log('getIP ${ipBox.values.toList()}');
     return ipBox.values.toList();
   }
 
@@ -51,16 +52,20 @@ class Storage {
   }
 
   static Future<void> addIp(String ip) async {
-    await ipBox.add(ip);
-    if (isFilterEnabled()) {
-      ipBox.close();
-      if (!ipBox.isOpen) ipBox = await hive.openBox('filteIp');
+    await ipBox.close();
+    if (!ipBox.isOpen) {
+      ipBox = await hive.openBox('filterIp');
     }
+    await ipBox.add(ip);
   }
 
   static Future<void> change(bool filter) async {
+    final service = FlutterBackgroundService();
+    service.invoke("stopService");
     await pBox.put('filterIp', filter);
-    await pBox.close();
-    if (!pBox.isOpen) pBox = await hive.openBox('password');
+
+    await Future.delayed(Durations.short1, () async {
+      await service.startService();
+    });
   }
 }

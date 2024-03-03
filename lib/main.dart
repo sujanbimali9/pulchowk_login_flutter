@@ -97,6 +97,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       TextFormField(
                         expands: false,
+                        autofocus: false,
+                        enableSuggestions: false,
                         keyboardType: TextInputType.visiblePassword,
                         obscureText: true,
                         initialValue: password,
@@ -205,14 +207,16 @@ class _FilterScreenState extends State<FilterScreen> {
                       ),
                     ),
                   ),
-                  Switch(
+                  Switch.adaptive(
                       activeColor: const Color.fromARGB(255, 104, 214, 107),
                       value: value,
                       onChanged: (v) async {
-                        await Storage.change(v);
-
-                        setState(() {
-                          value = v;
+                        await Future.delayed(const Duration(milliseconds: 100),
+                            () async {
+                          await Storage.change(v);
+                          setState(() {
+                            value = v;
+                          });
                         });
                       })
                 ],
@@ -228,6 +232,8 @@ class _FilterScreenState extends State<FilterScreen> {
                     width: MediaQuery.of(context).size.width * 0.7,
                     child: TextField(
                       expands: false,
+                      enableSuggestions: false,
+                      autofocus: false,
                       decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               vertical: 13, horizontal: 10),

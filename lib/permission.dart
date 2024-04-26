@@ -3,7 +3,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 Future<void> handlePermisson() async {
   const notification = Permission.notification;
-  await notification.request();
 
   final notiStatus = await notification.status;
   if (notiStatus.isGranted) {

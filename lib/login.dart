@@ -1,14 +1,14 @@
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:http/io_client.dart';
+import 'package:logger/web.dart';
 import 'package:pulchowk_login/show_toast.dart';
 
 Future<String> login(String username, String password) async {
-  // Specify the URL for the login endpoint
+  final logger = Logger();
   final url = Uri.parse('https://10.100.1.1:8090/login.xml');
-  log('login');
-  // Specify the request body
+
+  logger.d('login');
+
   final body = {
     'mode': '191',
     'username': username,
@@ -29,15 +29,15 @@ Future<String> login(String username, String password) async {
         .timeout(const Duration(seconds: 4));
     final responsedata = parseLoginResponse(response.body);
     if (response.statusCode == 200) {
-      log(responsedata);
+      logger.d(responsedata);
       await showToast(responsedata);
     } else {
-      log('Login failed: ${parseLoginResponse(response.body)}');
+      logger.e('Login failed: ${parseLoginResponse(response.body)}');
       await showToast(response.body);
     }
     return responsedata;
   } catch (e) {
-    log('Error: $e');
+    logger.e('Error: $e');
     await showToast('unknown error occured');
     return 'unknown error occured';
   }

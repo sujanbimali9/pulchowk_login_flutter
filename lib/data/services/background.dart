@@ -4,8 +4,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:logger/logger.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:pulchowk_login/storage.dart';
-import 'package:pulchowk_login/login.dart';
+import 'package:pulchowk_login/features/controller/app_controller.dart';
+import 'package:pulchowk_login/data/repository/login.dart';
 
 final logger = Logger();
 
@@ -57,13 +57,13 @@ Future<void> onStart(ServiceInstance service) async {
       final ip = await network.getWifiIP();
 
       ip != null
-          ? Storage.instance.isFilterEnabled.value
+          ? AppController.instance.isFilterEnabled.value
               ? checkIp(ip)
-                  ? await login(Storage.instance.userName.value,
-                      Storage.instance.password.value)
+                  ? await login(AppController.instance.userName.value,
+                      AppController.instance.password.value)
                   : null
-              : await login(Storage.instance.userName.value,
-                  Storage.instance.password.value)
+              : await login(AppController.instance.userName.value,
+                  AppController.instance.password.value)
           : null;
     }
     if (service is AndroidServiceInstance) {
@@ -85,5 +85,5 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 }
 
 bool checkIp(String ip) {
-  return Storage.instance.ipList.any((e) => ip.contains(e));
+  return AppController.instance.ipList.any((e) => ip.contains(e));
 }

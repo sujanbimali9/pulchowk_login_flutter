@@ -5,10 +5,12 @@ import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:logger/web.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pulchowk_login/login.dart';
+import 'package:pulchowk_login/data/repository/login.dart';
 
-class Storage extends GetxController {
-  static Storage get instance => Get.find();
+class AppController extends GetxController {
+  static AppController get instance => Get.find();
+  final formKey = GlobalKey<FormState>();
+
   late Box pBox;
   late Box<String> ipBox;
 
@@ -63,8 +65,7 @@ class Storage extends GetxController {
   }
 
   void loginPressed() async {
-    if (userNameController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty) {
+    if (formKey.currentState!.validate()) {
       final response = await login(
           userNameController.text.trim(), passwordController.text.trim());
 

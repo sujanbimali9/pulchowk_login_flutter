@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pulchowk_login/features/controller/app_controller.dart';
 
-class TAddIpSection extends StatelessWidget {
+class TAddIpSection extends GetView<AppController> {
   const TAddIpSection({
     super.key,
-    required this.controller,
   });
-
-  final AppController controller;
 
   @override
   Widget build(BuildContext context) {

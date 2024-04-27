@@ -28,21 +28,37 @@ class HomePage extends GetView<AppController> {
         padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5),
         child: Form(
           key: controller.formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Username',
-                style: TextStyle(fontSize: 20),
-              ),
-              UsernameField(controller: controller),
-              const Text(
-                'Password',
-                style: TextStyle(fontSize: 20),
-              ),
-              PasswordField(controller: controller),
-              LoginButton(controller: controller)
-            ],
+          child: Center(
+            child: ListView(
+              shrinkWrap: true,
+              // crossAxisAlignment: CrossAxisAlignment.start,
+              // mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Text(
+                  'Username',
+                  style: TextStyle(fontSize: 20),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                UsernameField(),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Password',
+                  style: TextStyle(fontSize: 20),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                PasswordField(),
+                SizedBox(
+                  height: 10,
+                ),
+                LoginButton()
+              ],
+            ),
           ),
         ),
       ),

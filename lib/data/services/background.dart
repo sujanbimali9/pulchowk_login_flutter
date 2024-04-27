@@ -1,26 +1,62 @@
+import 'dart:io';
 import 'dart:ui';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:pulchowk_login/features/controller/app_controller.dart';
+
 import 'package:pulchowk_login/data/repository/login.dart';
+import 'package:pulchowk_login/features/controller/app_controller.dart';
+import 'package:pulchowk_login/utils/helper/show_toast.dart';
 
 final logger = Logger();
 
 Future<void> initializeBackgroundService() async {
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'login', 'Initializing',
+      importance: Importance.low,
+      description: 'Initializing BackgroundService');
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  if (Platform.isIOS || Platform.isAndroid) {
+    await flutterLocalNotificationsPlugin.initialize(
+      const InitializationSettings(
+        iOS: DarwinInitializationSettings(),
+        android: AndroidInitializationSettings('ic_bg_service_small'),
+      ),
+    );
+  }
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
   final service = FlutterBackgroundService();
+
+  final androidConfiguration = AndroidConfiguration(
+    onStart: onStart,
+    autoStart: true,
+    isForegroundMode: true,
+    notificationChannelId: 'login',
+    initialNotificationTitle: 'AWESOME SERVICE',
+    initialNotificationContent: 'Initializing',
+    foregroundServiceNotificationId: 888,
+  );
+
   final iosConfiguration = IosConfiguration(
+    autoStart: true,
     onForeground: onStart,
     onBackground: onIosBackground,
   );
-  final androidConfiguration = AndroidConfiguration(
-    onStart: onStart,
-    isForegroundMode: true,
-    initialNotificationContent: 'Background Service Initializing',
-    foregroundServiceNotificationId: 999,
-  );
+
   service.configure(
       iosConfiguration: iosConfiguration,
       androidConfiguration: androidConfiguration);
@@ -30,57 +66,84 @@ Future<void> initializeBackgroundService() async {
 Future<void> onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   try {
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) async {
         await service.setAsForegroundService();
-        if (await service.isForegroundService()) {
-          await service.setForegroundNotificationInfo(
-              title: 'Wifi State Service',
-              content: 'Listening for wifi state change');
-        }
       });
-      service.on('stopService').listen((event) async {
-        await service.stopSelf();
-        await service.setAsForegroundService();
+
+      service.on('setAsBackground').listen((event) {
+        service.setAsBackgroundService();
       });
     }
+    service.on('stopService').listen((event) {
+      service.stopSelf();
+    });
   } catch (e) {
     logger.e(e);
   }
 
-  Connectivity()
-      .onConnectivityChanged
-      .listen((ConnectivityResult result) async {
-    if (result == ConnectivityResult.wifi) {
-      final network = NetworkInfo();
-      final ip = await network.getWifiIP();
-
-      ip != null
-          ? AppController.instance.isFilterEnabled.value
-              ? checkIp(ip)
-                  ? await login(AppController.instance.userName.value,
-                      AppController.instance.password.value)
-                  : null
-              : await login(AppController.instance.userName.value,
-                  AppController.instance.password.value)
-          : null;
-    }
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
-        service.setForegroundNotificationInfo(
-          title: 'Listening for Wifi State Change',
-          content: '$result',
+  if (service is AndroidServiceInstance) {
+    if (await service.isForegroundService()) {
+      Connectivity()
+          .onConnectivityChanged
+          .listen((ConnectivityResult result) async {
+        flutterLocalNotificationsPlugin.show(
+          888,
+          "listening for wifi change",
+          'state is $result',
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'login',
+              'listening for wifi change',
+              icon: 'ic_bg_service_small',
+              ongoing: true,
+            ),
+          ),
         );
-      }
+
+        logger.d('connectivity is $result');
+
+        service.setForegroundNotificationInfo(
+          title: "listening for wifi change",
+          content: "state is $result",
+        );
+
+        if (result == ConnectivityResult.wifi) {
+          final network = NetworkInfo();
+          final ip = await network.getWifiIP();
+          logger.d('ip is $ip');
+
+          if (ip != null) {
+            Get.put(AppController());
+            if (AppController.instance.isFilterEnabled.value) {
+              if (checkIp(ip)) {
+                BackgroundService.showToast(await login(
+                    AppController.instance.userName.value,
+                    AppController.instance.password.value));
+              }
+            } else {
+              await login(AppController.instance.userName.value,
+                  AppController.instance.password.value);
+            }
+          }
+        } else {
+          BackgroundService.showToast('connectivity changed to $result');
+        }
+      });
+
       service.invoke('update');
     }
-  });
+  }
 }
 
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
+  logger.d('iosBackground');
   return true;
 }
 

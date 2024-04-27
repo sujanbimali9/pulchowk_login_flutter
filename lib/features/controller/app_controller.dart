@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:logger/web.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pulchowk_login/data/repository/login.dart';
+import 'package:pulchowk_login/data/services/background.dart';
 
 class AppController extends GetxController {
   static AppController get instance => Get.find();
@@ -37,6 +38,21 @@ class AppController extends GetxController {
     super.onInit();
   }
 
+  @override
+  InternalFinalCallback<void> get onDelete {
+    Hive.closeAllBoxes();
+    return super.onDelete;
+  }
+
+  @override
+  void onClose() {
+    Hive.closeAllBoxes();
+    super.onClose();
+  }
+
+  void initialize() async {
+    initializeHive();
+  }
   // @override
   // void onReady() {
   //   log('onready');
@@ -75,7 +91,9 @@ class AppController extends GetxController {
         addLoginData();
         final service = FlutterBackgroundService();
         if (!(await service.isRunning())) {
-          await service.startService();
+          await initializeBackgroundService();
+          // await service.startService();
+          service.invoke('setAsForeground');
         }
       }
     }
@@ -134,6 +152,7 @@ class AppController extends GetxController {
       ipFilterController.clear();
       refreshIp();
     }
+    // update();
   }
 
   void change(bool value) {

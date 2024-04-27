@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:pulchowk_login/features/controller/app_controller.dart';
 
-class TIpListBuilder extends StatelessWidget {
+class TIpListBuilder extends GetView<AppController> {
   const TIpListBuilder({
     super.key,
-    required this.controller,
   });
-
-  final AppController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +45,6 @@ class TIpListBuilder extends StatelessWidget {
                       )),
                 ),
               ),
-              const Spacer(),
             ],
           );
         },

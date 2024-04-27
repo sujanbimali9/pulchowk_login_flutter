@@ -15,15 +15,15 @@ class FilterScreen extends GetView<AppController> {
         centerTitle: true,
         title: const Text('pulchowk login'),
       ),
-      body: Column(
+      body: const Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Obx(() => TSwitchTile(controller: controller)),
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: TSwitchTile(),
           ),
-          TAddIpSection(controller: controller),
-          TIpListBuilder(controller: controller),
+          TAddIpSection(),
+          TIpListBuilder(),
         ],
       ),
     );

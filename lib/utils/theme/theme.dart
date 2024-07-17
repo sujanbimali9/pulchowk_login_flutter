@@ -55,7 +55,7 @@ class AppTheme {
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             elevation: 0.5,
-            backgroundColor: Color.fromARGB(198, 29, 179, 74),
+            backgroundColor: const Color.fromARGB(198, 29, 179, 74),
             maximumSize: const Size(200, 60),
             minimumSize: const Size(170, 50)));
   }

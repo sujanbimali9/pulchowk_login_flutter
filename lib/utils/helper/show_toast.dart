@@ -8,7 +8,8 @@ class BackgroundService {
     try {
       logger.d('${await Fluttertoast.showToast(
         msg: message,
-        backgroundColor: Colors.grey.withOpacity(0.5),
+        backgroundColor:
+            const Color.fromARGB(255, 217, 244, 207).withOpacity(0.5),
         textColor: Colors.black,
         toastLength: Toast.LENGTH_SHORT,
       )}');

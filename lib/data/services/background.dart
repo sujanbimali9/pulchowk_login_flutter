@@ -4,14 +4,12 @@ import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
 import 'package:pulchowk_login/data/repository/login.dart';
-import 'package:pulchowk_login/features/controller/app_controller.dart';
+import 'package:pulchowk_login/data/services/storage.dart';
 import 'package:pulchowk_login/utils/helper/show_toast.dart';
 
 final logger = Logger();
@@ -33,7 +31,6 @@ Future<void> initializeBackgroundService() async {
       ),
     );
   }
-
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
@@ -46,7 +43,7 @@ Future<void> initializeBackgroundService() async {
     autoStart: true,
     isForegroundMode: true,
     notificationChannelId: 'login',
-    initialNotificationTitle: 'AWESOME SERVICE',
+    initialNotificationTitle: 'Background Services',
     initialNotificationContent: 'Initializing',
     foregroundServiceNotificationId: 888,
   );
@@ -65,17 +62,13 @@ Future<void> initializeBackgroundService() async {
 @pragma('vm:entry-point')
 Future<void> onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
-
+  WidgetsFlutterBinding.ensureInitialized();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   try {
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) async {
         await service.setAsForegroundService();
-      });
-
-      service.on('setAsBackground').listen((event) {
-        service.setAsBackgroundService();
       });
     }
     service.on('stopService').listen((event) {
@@ -93,7 +86,7 @@ Future<void> onStart(ServiceInstance service) async {
         flutterLocalNotificationsPlugin.show(
           888,
           "listening for wifi change",
-          'state is $result',
+          'state is ${result.name}',
           const NotificationDetails(
             android: AndroidNotificationDetails(
               'login',
@@ -104,11 +97,11 @@ Future<void> onStart(ServiceInstance service) async {
           ),
         );
 
-        logger.d('connectivity is $result');
+        logger.d('connectivity is ${result.name}');
 
         service.setForegroundNotificationInfo(
           title: "listening for wifi change",
-          content: "state is $result",
+          content: "state is ${result.name}",
         );
 
         if (result == ConnectivityResult.wifi) {
@@ -117,20 +110,25 @@ Future<void> onStart(ServiceInstance service) async {
           logger.d('ip is $ip');
 
           if (ip != null) {
-            Get.put(AppController());
-            if (AppController.instance.isFilterEnabled.value) {
+            if (HiveStorage.fromDataBox('isFilterEnabled',
+                defaultValue: false)) {
               if (checkIp(ip)) {
+                logger.e(true);
                 BackgroundService.showToast(await login(
-                    AppController.instance.userName.value,
-                    AppController.instance.password.value));
+                  HiveStorage.fromDataBox('username'),
+                  HiveStorage.fromDataBox('password'),
+                ));
               }
+              logger.e(ip);
             } else {
-              await login(AppController.instance.userName.value,
-                  AppController.instance.password.value);
+              BackgroundService.showToast(await login(
+                HiveStorage.fromDataBox('username'),
+                HiveStorage.fromDataBox('password'),
+              ));
             }
           }
         } else {
-          BackgroundService.showToast('connectivity changed to $result');
+          BackgroundService.showToast('connected to ${result.name}');
         }
       });
 
@@ -148,5 +146,5 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 }
 
 bool checkIp(String ip) {
-  return AppController.instance.ipList.any((e) => ip.contains(e));
+  return HiveStorage.getAlIp.any((e) => ip.contains(e));
 }

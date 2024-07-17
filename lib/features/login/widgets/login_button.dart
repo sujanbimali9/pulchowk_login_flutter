@@ -14,7 +14,7 @@ class LoginButton extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: ElevatedButton(
             onPressed: AppController.instance.loginPressed,
-            child: const Text('login')),
+            child: const Text('login',style: TextStyle(color: Colors.black)),),
       ),
     );
   }

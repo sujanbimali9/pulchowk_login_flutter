@@ -7,13 +7,11 @@ import 'package:logger/web.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pulchowk_login/data/repository/login.dart';
 import 'package:pulchowk_login/data/services/background.dart';
+import 'package:pulchowk_login/data/services/storage.dart';
 
 class AppController extends GetxController {
   static AppController get instance => Get.find();
   final formKey = GlobalKey<FormState>();
-
-  late Box pBox;
-  late Box<String> ipBox;
 
   RxString userName = ''.obs;
   RxString password = ''.obs;
@@ -32,16 +30,11 @@ class AppController extends GetxController {
         printEmojis: false,
       ),
       filter: DevelopmentFilter());
+
   @override
   void onInit() {
     initializeHive();
     super.onInit();
-  }
-
-  @override
-  InternalFinalCallback<void> get onDelete {
-    Hive.closeAllBoxes();
-    return super.onDelete;
   }
 
   @override
@@ -53,31 +46,25 @@ class AppController extends GetxController {
   void initialize() async {
     initializeHive();
   }
-  // @override
-  // void onReady() {
-  //   log('onready');
-  //   initializeHive();
-  //   super.onReady();
-  // }
 
   void refreshData() {
-    userName.value = pBox.get('username', defaultValue: '');
-    password.value = pBox.get('password', defaultValue: '');
+    userName.value = HiveStorage.fromDataBox('username', defaultValue: '');
+    password.value = HiveStorage.fromDataBox('password', defaultValue: '');
   }
 
   void refreshSwitch() {
-    isFilterEnabled.value = pBox.get('isFilterEnabled', defaultValue: false);
+    isFilterEnabled.value =
+        HiveStorage.fromDataBox('isFilterEnabled', defaultValue: false);
   }
 
   void refreshIp() {
-    ipBox.isNotEmpty
-        ? ipList.value = ipBox.getRange(0, ipBox.length)
-        : ipList.clear();
+    ipList.value = HiveStorage.getAlIp;
   }
 
-  void refreshHive() {
+  void refreshAll() {
     refreshData();
     refreshIp();
+    refreshSwitch();
   }
 
   void loginPressed() async {
@@ -92,7 +79,7 @@ class AppController extends GetxController {
         final service = FlutterBackgroundService();
         if (!(await service.isRunning())) {
           await initializeBackgroundService();
-          // await service.startService();
+          service.invoke('stopService');
           service.invoke('setAsForeground');
         }
       }
@@ -101,63 +88,47 @@ class AppController extends GetxController {
 
   Future<void> initializeHive() async {
     logger.d('initialize hive');
-    Hive.closeAllBoxes();
+
     final path = await getApplicationDocumentsDirectory();
-    Hive.defaultDirectory = path.path;
+    HiveStorage.defaultHiveStorage = path.path;
 
-    ipBox = Hive.box(name: 'filterIp');
-    if (ipBox.isNotEmpty) {
-      ipList.addAll(ipBox.getRange(0, ipBox.length));
-    }
-
-    pBox = Hive.box(name: 'data');
-    userName.value = pBox.get('username', defaultValue: '');
-    password.value = pBox.get('password', defaultValue: '');
-    isFilterEnabled.value = pBox.get('isFilterEnabled', defaultValue: false);
+    refreshAll();
 
     userNameController.text = userName.value;
     passwordController.text = password.value;
+
     logger.d('username : ${userName.value} , password : ${password.value}');
   }
 
   void addLoginData() {
     logger.d('addPData');
-    pBox.putAll({
+
+    HiveStorage.addAllData({
       'username': userNameController.text.trim(),
       'password': passwordController.text.trim()
     });
+
     refreshData();
   }
 
   void deleteIP(int index) {
-    try {
-      logger.d('delete ${ipBox[index]}');
-
-      ipBox.deleteAt(index);
-      refreshIp();
-    } catch (e) {
-      logger.e(e);
-    }
+    HiveStorage.deleteIp = index;
+    refreshIp();
   }
-
-  // void deleteAllBox() {
-  //   pBox.deleteFromDisk();
-  //   ipBox.deleteFromDisk();
-  // }
 
   void addIp() {
     logger.d('add Ip');
-    if (ipFilterController.text.isNotEmpty) {
-      ipBox.add(ipFilterController.text.trim());
+    if (ipFilterController.text.isNotEmpty &&
+        (!ipList.contains(ipFilterController.text.trim()))) {
+      HiveStorage.addIp = ipFilterController.text.trim();
       ipFilterController.clear();
       refreshIp();
     }
-    // update();
   }
 
   void change(bool value) {
     logger.d('change switch value to $value');
-    pBox.put('isFilterEnabled', value);
+    HiveStorage.addData('isFilterEnabled', value);
     refreshSwitch();
   }
 }

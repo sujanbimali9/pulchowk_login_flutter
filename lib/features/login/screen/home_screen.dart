@@ -13,13 +13,12 @@ class HomePage extends GetView<AppController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pulchowk Login'),
+        title:  const Text('Pulchowk Login'),
         actions: [
           TextButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => const FilterScreen(),
-                ));
+                    builder: (context) => const FilterScreen()));
               },
               child: const Text('Advance'))
         ],
@@ -31,31 +30,15 @@ class HomePage extends GetView<AppController> {
           child: Center(
             child: ListView(
               shrinkWrap: true,
-              // crossAxisAlignment: CrossAxisAlignment.start,
-              // mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Text(
-                  'Username',
-                  style: TextStyle(fontSize: 20),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
+                Text('Username', style: TextStyle(fontSize: 20)),
+                SizedBox(height: 5),
                 UsernameField(),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Password',
-                  style: TextStyle(fontSize: 20),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
+                SizedBox(height: 10),
+                Text('Password', style: TextStyle(fontSize: 20)),
+                SizedBox(height: 5),
                 PasswordField(),
-                SizedBox(
-                  height: 10,
-                ),
+                SizedBox(height: 10),
                 LoginButton()
               ],
             ),
